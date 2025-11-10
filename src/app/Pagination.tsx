@@ -6,11 +6,32 @@ interface PaginationProps {
 };
 
 const Pagination = ({ page, setPage, totalCount }: PaginationProps) => {
+  const isFirstPage = page === 0;
+  const isLastPage = totalCount < (page + 1) * 10;
+  const totalPages = Math.ceil(totalCount / 10);
   return (
-    <div className="flex space-x-4 justify-center mt-4">
-      <button disabled={page === 0} className="bg-green-900 text-white px-4 py-2 rounded mt-4 ml-4 mb-4 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed" onClick={() => setPage(page > 0 ? page - 1 : 0)}>−</button>
-      <span className="self-center text-green-900">Page {page + 1}</span>
-      <button disabled={totalCount < (page + 1) * 10} className="bg-green-900 text-white px-4 py-2 rounded mt-4 mb-4 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed" onClick={() => setPage(page + 1)}>+</button>
+    <div className="flex space-x-4 justify-center mt-4" role="navigation">
+      <button 
+        disabled={isFirstPage} 
+        className="bg-green-900 text-white px-4 py-2 rounded mt-4 ml-4 mb-4 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed" 
+        onClick={() => setPage(page - 1)}
+        aria-label="Previous page"
+        aria-disabled={isFirstPage}
+      >
+        Previous
+      </button>
+      <span className="self-center text-green-900" aria-current="page" role="status">
+        Page {page + 1} of {totalPages}
+      </span>
+      <button 
+        disabled={isLastPage} 
+        className="bg-green-900 text-white px-4 py-2 rounded mt-4 mb-4 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed" 
+        onClick={() => setPage(page + 1)}
+        aria-label="Next page"
+        aria-disabled={isLastPage}
+      >
+        Next
+      </button>
     </div>
   );
 };

@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       ilike(advocates.lastName, `%${searchTerm}%`),
       ilike(advocates.city, `%${searchTerm}%`),
       ilike(advocates.degree, `%${searchTerm}%`),
-      sql`${advocates.specialties}::text ilike ${'%' + searchTerm + '%'}`
+      sql`${advocates.specialties}::text ilike ${`%${searchTerm}%`}`
     );
   }
   const data = await (db.select().from(advocates) as any).where(wheres).limit(10).offset((page ? page : 0) * 10).orderBy(asc(advocates.phoneNumber));
