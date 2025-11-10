@@ -7,35 +7,59 @@ import Image from "next/image";
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => {
+      clearTimeout(debounce);
+    };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (debouncedSearchTerm) {
+    setSearchTerm(debouncedSearchTerm);
+    const lowerCaseSearchTerm = debouncedSearchTerm.toLowerCase().trim();
+    
+    const filteredAdvocates = advocates.filter((advocate: Advocate) => {
+      return (
+        advocate.firstName.toLowerCase().includes(lowerCaseSearchTerm) ||
+        advocate.lastName.toLowerCase().includes(lowerCaseSearchTerm) ||
+        advocate.city.toLowerCase().includes(lowerCaseSearchTerm) ||
+        advocate.degree.toLowerCase().includes(lowerCaseSearchTerm) ||
+        advocate.specialties.filter(s => s.toLowerCase().includes(lowerCaseSearchTerm)).length > 0 ||
+        advocate.yearsOfExperience.toString().includes(lowerCaseSearchTerm)
+      );
+    });
+    setAdvCount(filteredAdvocates.length);
+    setFilteredAdvocates(filteredAdvocates);
+    }
+  }, [debouncedSearchTerm, advocates]);
+  const [advCount, setAdvCount] = useState<number>(0);
 
   useEffect(() => {
     fetch("/api/advocates").then((response) => {
       response.json().then((jsonResponse) => {
         setAdvocates(jsonResponse.data);
         setFilteredAdvocates(jsonResponse.data);
+        setAdvCount(jsonResponse.data.length);
       });
     });
   }, []);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const searchTerm = e.target.value.toLowerCase();
-
-    const filteredAdvocates = advocates.filter((advocate: Advocate) => {
-      return (
-        advocate.firstName.toLowerCase().includes(searchTerm) ||
-        advocate.lastName.toLowerCase().includes(searchTerm) ||
-        advocate.city.toLowerCase().includes(searchTerm) ||
-        advocate.degree.toLowerCase().includes(searchTerm) ||
-        advocate.specialties.filter(s => s.toLowerCase().includes(searchTerm)).length > 0 ||
-        advocate.yearsOfExperience.toString().includes(searchTerm)
-      );
-    });
-
-    setFilteredAdvocates(filteredAdvocates);
+    setSearchTerm(e.target.value);
   };
 
   const onClick = () => {
 
+    
+    setSearchTerm("");
+    setAdvCount(advocates.length);
     setFilteredAdvocates(advocates);
   };
   const greenCell = "px-6 py-4 bg-green-900 dark:text-white border-b border-white";
@@ -50,12 +74,14 @@ export default function Home() {
       </div>
       <br />
       <br />
-      <div>
-        <p className="text-green-900 text-xl">Search</p>
-        <input className="border border-green-900 p-2 rounded" onChange={onChange} />
-        <br />
-        <button className="bg-green-900 text-white px-4 py-2 rounded" onClick={onClick}>Reset Your Search</button>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="search-term" className="text-green-900 text-xl">Search</label>
+        <input id="search-term" value={searchTerm} className="border border-green-900 p-2 rounded" onChange={onChange} />
       </div>
+
+        <br />
+        <p className="text-green-900 text-lg">{advCount} advocate{advCount !== 1 ? 's' : ''} found</p>
+        <button className="bg-green-900 text-white px-4 py-2 rounded" onClick={onClick}>Reset Your Search</button>
       <br />
       <br />
       <table className="table-auto w-full align-top text-left rtl:text-right">
