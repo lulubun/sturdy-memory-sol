@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Advocate } from "./types";
 
 export default function Home() {
-  const [advocates, setAdvocates] = useState([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState([]);
+  const [advocates, setAdvocates] = useState<Advocate[]>([]);
+  const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
 
   useEffect(() => {
-    console.log("fetching advocates...");
+    // console.log("fetching advocates...");
     fetch("/api/advocates").then((response) => {
       response.json().then((jsonResponse) => {
         setAdvocates(jsonResponse.data);
@@ -16,13 +17,14 @@ export default function Home() {
     });
   }, []);
 
-  const onChange = (e) => {
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value;
 
-    document.getElementById("search-term").innerHTML = searchTerm;
+    const searchingForDiv = document.getElementById("search-term");
 
-    console.log("filtering advocates...");
-    const filteredAdvocates = advocates.filter((advocate) => {
+    if (searchingForDiv) searchingForDiv.innerHTML = searchTerm;
+
+    const filteredAdvocates = advocates.filter((advocate: Advocate) => {
       return (
         advocate.firstName.includes(searchTerm) ||
         advocate.lastName.includes(searchTerm) ||
@@ -37,7 +39,7 @@ export default function Home() {
   };
 
   const onClick = () => {
-    console.log(advocates);
+    // console.log(advocates);
     setFilteredAdvocates(advocates);
   };
 
@@ -58,16 +60,17 @@ export default function Home() {
       <br />
       <table>
         <thead>
-          <th>First Name</th>
+          <tr>
           <th>Last Name</th>
           <th>City</th>
           <th>Degree</th>
           <th>Specialties</th>
           <th>Years of Experience</th>
           <th>Phone Number</th>
+          </tr>
         </thead>
         <tbody>
-          {filteredAdvocates.map((advocate) => {
+          {filteredAdvocates.map((advocate: Advocate, idx:number) => {
             return (
               <tr>
                 <td>{advocate.firstName}</td>
@@ -75,8 +78,8 @@ export default function Home() {
                 <td>{advocate.city}</td>
                 <td>{advocate.degree}</td>
                 <td>
-                  {advocate.specialties.map((s) => (
-                    <div>{s}</div>
+                  {advocate.specialties.map((s: string, i: number) => (
+                    <div key={s + i}>*{s}</div>
                   ))}
                 </td>
                 <td>{advocate.yearsOfExperience}</td>
