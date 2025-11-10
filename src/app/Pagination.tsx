@@ -3,12 +3,14 @@ interface PaginationProps {
   page: number;
   setPage: (page: number) => void;
   totalCount: number;
+  advCount: number;
+  searchTerm?: string;
 };
 
-const Pagination = ({ page, setPage, totalCount }: PaginationProps) => {
+const Pagination = ({ page, setPage, totalCount, advCount, searchTerm }: PaginationProps) => {
   const isFirstPage = page === 0;
-  const isLastPage = totalCount < (page + 1) * 10;
-  const totalPages = Math.ceil(totalCount / 10);
+  const totalPages = searchTerm && searchTerm !== '' && advCount < 10 ? Math.ceil(advCount / 10) : Math.ceil(totalCount / 10);
+  const isLastPage = totalPages === page + 1;
   return (
     <div className="flex space-x-4 justify-center mt-4" role="navigation">
       <button 
