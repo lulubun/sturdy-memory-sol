@@ -13,3 +13,6 @@ I'd spend some time adding more seed data that overlapped with existing records 
 I'm still relatively new to tailwind but I'd try to do some more cleanup of the classes so they aren't so long
 
 I'd add tests. Normally, I would just ask copilot to write me some and then spend some time debugging them or making sure they're relevant to what actually needs to be tested but I got too into the search and pagination part and I'm out of time :(
+
+
+In my final review/manual testing I fixed a small bug with the pagination where if 10 results are returned, the second page will be available but empty. I'd fix this by updating the total count on each api call
