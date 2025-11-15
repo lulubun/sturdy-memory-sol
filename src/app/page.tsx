@@ -1,91 +1,77 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Advocate } from "./types";
+import Image from "next/image";
+import Pagination from './Pagination'
+import AdvocateTable from "./Table";
+import Loading from "./Loading";
 
 export default function Home() {
-  const [advocates, setAdvocates] = useState([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState([]);
+  const [advocates, setAdvocates] = useState<Advocate[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [page, setPage] = useState(0);
+  const [advCount, setAdvCount] = useState<number>(0);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
+    fetch(`/api/advocates?initial=true`).then((response) => {
       response.json().then((jsonResponse) => {
+        setIsLoading(false);
         setAdvocates(jsonResponse.data);
-        setFilteredAdvocates(jsonResponse.data);
+        setAdvCount(jsonResponse.data.length);
+        setTotalCount(jsonResponse.totalCount);
       });
     });
   }, []);
 
-  const onChange = (e) => {
-    const searchTerm = e.target.value;
-
-    document.getElementById("search-term").innerHTML = searchTerm;
-
-    console.log("filtering advocates...");
-    const filteredAdvocates = advocates.filter((advocate) => {
-      return (
-        advocate.firstName.includes(searchTerm) ||
-        advocate.lastName.includes(searchTerm) ||
-        advocate.city.includes(searchTerm) ||
-        advocate.degree.includes(searchTerm) ||
-        advocate.specialties.includes(searchTerm) ||
-        advocate.yearsOfExperience.includes(searchTerm)
-      );
+  useEffect(() => {
+    fetch(`/api/advocates?page=${page}&search=${debouncedSearchTerm}`).then((response) => {
+      response.json().then((jsonResponse) => {
+        setAdvocates(jsonResponse.data);
+        setAdvCount(jsonResponse.data.length);
+      });
     });
+  }, [page, debouncedSearchTerm]);
 
-    setFilteredAdvocates(filteredAdvocates);
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => {
+      clearTimeout(debounce);
+    };
+  }, [searchTerm]);
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
 
   const onClick = () => {
-    console.log(advocates);
-    setFilteredAdvocates(advocates);
+    setSearchTerm("");
+    setPage(0);
   };
+
 
   return (
     <main style={{ margin: "24px" }}>
-      <h1>Solace Advocates</h1>
-      <br />
-      <br />
-      <div>
-        <p>Search</p>
-        <p>
-          Searching for: <span id="search-term"></span>
-        </p>
-        <input style={{ border: "1px solid black" }} onChange={onChange} />
-        <button onClick={onClick}>Reset Search</button>
-      </div>
-      <br />
-      <br />
-      <table>
-        <thead>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>City</th>
-          <th>Degree</th>
-          <th>Specialties</th>
-          <th>Years of Experience</th>
-          <th>Phone Number</th>
-        </thead>
-        <tbody>
-          {filteredAdvocates.map((advocate) => {
-            return (
-              <tr>
-                <td>{advocate.firstName}</td>
-                <td>{advocate.lastName}</td>
-                <td>{advocate.city}</td>
-                <td>{advocate.degree}</td>
-                <td>
-                  {advocate.specialties.map((s) => (
-                    <div>{s}</div>
-                  ))}
-                </td>
-                <td>{advocate.yearsOfExperience}</td>
-                <td>{advocate.phoneNumber}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <header className="flex items-center gap-1">
+        <Image src='/favicon.ico' alt='Solace Logo as letter S' width={50} height={50} />
+        <h1 className="text-2xl font-bold text-green-900">olace Advocates</h1>
+      </header>
+      {isLoading && <Loading />}
+      <section className="flex flex-col gap-2">
+        <label htmlFor="search-term" className="text-green-900 text-xl">Search</label>
+        <input id="search-term" value={searchTerm} className="border border-green-900 p-2 rounded" onChange={onChange} />
+      </section>
+        <p className="text-green-900 text-lg">Showing {advCount} advocate{advCount !== 1 ? 's' : ''} out of {totalCount}</p>
+        <button className="bg-green-900 text-white px-4 py-2 rounded" onClick={onClick}>Reset Your Search</button>
+        <Pagination searchTerm={searchTerm} page={page} setPage={setPage} totalCount={totalCount} advCount={advCount}/>
+        <AdvocateTable advocates={advocates} />
+        <Pagination searchTerm={searchTerm} page={page} setPage={setPage} totalCount={totalCount} advCount={advCount} />
     </main>
   );
 }
